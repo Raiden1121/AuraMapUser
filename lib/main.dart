@@ -46,7 +46,6 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
 
   // 資料狀態
   Uint8List? _lastFrame;
-  ImuPacket? _lastImu;
   bool _cameraConnected = false;
   bool _imuConnected = false;
   bool _audioConnected = false;
@@ -83,7 +82,6 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
     _imuSub = _imu.stream.listen(
       (pkt) {
         setState(() {
-          _lastImu = pkt;
           _imuConnected = true;
         });
       },
@@ -169,37 +167,14 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
             // 頂部狀態列
             _buildStatusBar(),
 
-            Expanded(
-              child: Row(
-                children: [
-                  // 左側面板
-                  Expanded(
-                    flex: 3,
-                    child: Column(
-                      children: [
-                        // 攝影畫面
-                        _buildCameraView(),
-                        // IMU 數據
-                        _buildImuData(),
-                      ],
-                    ),
-                  ),
+            // 攝影畫面
+            _buildCameraView(),
 
-                  // 右側面板
-                  Expanded(
-                    flex: 2,
-                    child: Column(
-                      children: [
-                        // 位置與導航資訊
-                        _buildNavigationInfo(),
-                        // AI 對話
-                        Expanded(child: _buildChatInterface()),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // 位置與導航資訊
+            _buildNavigationInfo(),
+
+            // AI 對話
+            Expanded(child: _buildChatInterface()),
           ],
         ),
       ),
@@ -209,48 +184,54 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
   // 頂部狀態列
   Widget _buildStatusBar() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: const Color(0xFF0F3460),
         boxShadow: [
           BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 8),
         ],
       ),
-      child: Row(
+      child: Column(
         children: [
-          const Text(
-            'AuraMap',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.lightBlue,
-            ),
+          // 標題和電量
+          Row(
+            children: [
+              const Text(
+                'AuraMap',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.lightBlue,
+                ),
+              ),
+              const Spacer(),
+              _buildBatteryIndicator(),
+            ],
           ),
-          const SizedBox(width: 20),
+
+          const SizedBox(height: 8),
 
           // 設備連接狀態
-          _buildConnectionStatus(
-            icon: Icons.videocam,
-            label: 'ESP32 攝影機',
-            connected: _cameraConnected,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildConnectionStatus(
+                icon: Icons.videocam,
+                label: '攝影機',
+                connected: _cameraConnected,
+              ),
+              _buildConnectionStatus(
+                icon: Icons.sensors,
+                label: 'IMU',
+                connected: _imuConnected,
+              ),
+              _buildConnectionStatus(
+                icon: Icons.headset,
+                label: '耳機',
+                connected: _audioConnected,
+              ),
+            ],
           ),
-          const SizedBox(width: 15),
-          _buildConnectionStatus(
-            icon: Icons.sensors,
-            label: 'IMU 感測器',
-            connected: _imuConnected,
-          ),
-          const SizedBox(width: 15),
-          _buildConnectionStatus(
-            icon: Icons.headset,
-            label: '音訊耳機',
-            connected: _audioConnected,
-          ),
-
-          const Spacer(),
-
-          // 電量顯示
-          _buildBatteryIndicator(),
         ],
       ),
     );
@@ -262,15 +243,17 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
     required String label,
     required bool connected,
   }) {
-    return Row(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 20, color: connected ? Colors.green : Colors.red),
-        const SizedBox(width: 5),
+        Icon(icon, size: 24, color: connected ? Colors.green : Colors.red),
+        const SizedBox(height: 2),
         Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 10,
             color: connected ? Colors.green : Colors.red,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],
@@ -306,10 +289,10 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
 
   // 攝影畫面
   Widget _buildCameraView() {
-    return Expanded(
-      flex: 3,
+    return Container(
+      height: 200,
+      margin: const EdgeInsets.all(8),
       child: Card(
-        margin: const EdgeInsets.all(8),
         child: Container(
           padding: const EdgeInsets.all(8),
           child: Column(
@@ -317,21 +300,33 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.camera_alt, color: Colors.blue, size: 20),
+                  const Icon(Icons.camera_alt, color: Colors.blue, size: 18),
                   const SizedBox(width: 8),
                   const Text(
                     '攝影機畫面',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
+                      fontSize: 14,
                     ),
                   ),
                   const Spacer(),
-                  Text(
-                    _cameraConnected ? '已連接' : '未連接',
-                    style: TextStyle(
-                      fontSize: 12,
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
                       color: _cameraConnected ? Colors.green : Colors.red,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      _cameraConnected ? '已連接' : '未連接',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
@@ -352,12 +347,15 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
                                 Icon(
                                   Icons.videocam_off,
                                   color: Colors.grey,
-                                  size: 48,
+                                  size: 32,
                                 ),
-                                SizedBox(height: 8),
+                                SizedBox(height: 4),
                                 Text(
                                   '等待影像串流...',
-                                  style: TextStyle(color: Colors.grey),
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ],
                             ),
@@ -368,14 +366,14 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
                               Image.memory(
                                 _lastFrame!,
                                 gaplessPlayback: true,
-                                fit: BoxFit.contain,
+                                fit: BoxFit.cover,
                               ),
                               // 準心標記
                               Center(
                                 child: Icon(
                                   Icons.center_focus_strong,
                                   color: Colors.green.withOpacity(0.6),
-                                  size: 48,
+                                  size: 32,
                                 ),
                               ),
                             ],
@@ -386,129 +384,6 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  // IMU 數據顯示
-  Widget _buildImuData() {
-    return Card(
-      margin: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.sensors, color: Colors.orange, size: 20),
-                const SizedBox(width: 8),
-                const Text(
-                  '慣性感測器數據',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            if (_lastImu == null)
-              const Center(
-                child: Text(
-                  '等待 IMU 數據...',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              )
-            else
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildImuCard(
-                      title: '線性加速度 (m/s²)',
-                      xLabel: 'X軸',
-                      xValue: _lastImu!.axG * 9.8,
-                      yLabel: 'Y軸',
-                      yValue: _lastImu!.ayG * 9.8,
-                      zLabel: 'Z軸',
-                      zValue: _lastImu!.azG * 9.8,
-                      color: Colors.cyan,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildImuCard(
-                      title: '角速度 (rad/s)',
-                      xLabel: 'X軸',
-                      xValue: _lastImu!.gxDps * math.pi / 180,
-                      yLabel: 'Y軸',
-                      yValue: _lastImu!.gyDps * math.pi / 180,
-                      zLabel: 'Z軸',
-                      zValue: _lastImu!.gzDps * math.pi / 180,
-                      color: Colors.green,
-                    ),
-                  ),
-                ],
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // IMU 數值卡片
-  Widget _buildImuCard({
-    required String title,
-    required String xLabel,
-    required double xValue,
-    required String yLabel,
-    required double yValue,
-    required String zLabel,
-    required double zValue,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 11,
-              color: color,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 4),
-          _buildAxisValue(xLabel, xValue, color),
-          _buildAxisValue(yLabel, yValue, color),
-          _buildAxisValue(zLabel, zValue, color),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAxisValue(String label, double value, Color color) {
-    return Row(
-      children: [
-        SizedBox(
-          width: 30,
-          child: Text(
-            '$label：',
-            style: const TextStyle(fontSize: 10, color: Colors.white70),
-          ),
-        ),
-        Text(
-          value.toStringAsFixed(2),
-          style: TextStyle(fontSize: 11, color: color, fontFamily: 'monospace'),
-        ),
-      ],
     );
   }
 
@@ -524,18 +399,19 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
             // 位置資訊
             Row(
               children: [
-                const Icon(Icons.location_on, color: Colors.blue, size: 20),
+                const Icon(Icons.location_on, color: Colors.blue, size: 18),
                 const SizedBox(width: 8),
                 const Text(
                   '目前位置',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
+                    fontSize: 14,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
 
             Container(
               padding: const EdgeInsets.all(8),
@@ -545,12 +421,12 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.business, color: Colors.blue[300], size: 18),
+                  Icon(Icons.business, color: Colors.blue[300], size: 16),
                   const SizedBox(width: 8),
                   Text(
                     '$_currentBuilding - $_currentFloor',
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -558,42 +434,50 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
             // 導航指示
             Row(
               children: [
-                const Icon(Icons.navigation, color: Colors.green, size: 20),
+                const Icon(Icons.navigation, color: Colors.green, size: 18),
                 const SizedBox(width: 8),
                 const Text(
                   '導航資訊',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
+                    fontSize: 14,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-
-            // 下一個 waypoint
-            _buildNavigationItem(
-              icon: Icons.flag,
-              label: '下一個導航點',
-              distance: _nextWaypointDistance,
-              angle: _nextWaypointAngle,
-              color: Colors.orange,
-            ),
-
             const SizedBox(height: 8),
 
-            // 終點
-            _buildNavigationItem(
-              icon: Icons.location_searching,
-              label: '終點',
-              distance: _destinationDistance,
-              angle: null,
-              color: Colors.green,
+            // 導航項目 - 水平排列
+            Row(
+              children: [
+                // 下一個 waypoint
+                Expanded(
+                  child: _buildNavigationItem(
+                    icon: Icons.flag,
+                    label: '下一個導航點',
+                    distance: _nextWaypointDistance,
+                    angle: _nextWaypointAngle,
+                    color: Colors.orange,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // 終點
+                Expanded(
+                  child: _buildNavigationItem(
+                    icon: Icons.location_searching,
+                    label: '終點',
+                    distance: _destinationDistance,
+                    angle: null,
+                    color: Colors.green,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -616,30 +500,34 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: color.withOpacity(0.3)),
       ),
-      child: Row(
+      child: Column(
         children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
+          Row(
+            children: [
+              Icon(icon, color: color, size: 20),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
                   label,
-                  style: const TextStyle(fontSize: 12, color: Colors.white70),
+                  style: const TextStyle(fontSize: 10, color: Colors.white70),
+                  overflow: TextOverflow.ellipsis,
                 ),
-                Text(
-                  '${distance.toStringAsFixed(1)} 公尺',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
-                ),
-              ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${distance.toStringAsFixed(1)}m',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: color,
             ),
           ),
-          if (angle != null) _buildDirectionIndicator(angle, color),
+          if (angle != null) ...[
+            const SizedBox(height: 4),
+            _buildDirectionIndicator(angle, color),
+          ],
         ],
       ),
     );
@@ -648,16 +536,16 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
   // 方向指示器
   Widget _buildDirectionIndicator(double angle, Color color) {
     return Container(
-      width: 50,
-      height: 50,
+      width: 30,
+      height: 30,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: color.withOpacity(0.2),
-        border: Border.all(color: color, width: 2),
+        border: Border.all(color: color, width: 1.5),
       ),
       child: Transform.rotate(
         angle: angle * math.pi / 180,
-        child: Icon(Icons.navigation, color: color, size: 24),
+        child: Icon(Icons.navigation, color: color, size: 16),
       ),
     );
   }
@@ -673,13 +561,14 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
           children: [
             Row(
               children: [
-                const Icon(Icons.assistant, color: Colors.purple, size: 20),
+                const Icon(Icons.assistant, color: Colors.purple, size: 18),
                 const SizedBox(width: 8),
                 const Text(
                   'AI 助理',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
+                    fontSize: 14,
                   ),
                 ),
               ],
@@ -712,12 +601,13 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
                 Expanded(
                   child: TextField(
                     controller: _messageController,
-                    style: const TextStyle(fontSize: 14),
+                    style: const TextStyle(fontSize: 12),
                     decoration: InputDecoration(
                       hintText: '輸入訊息...',
+                      hintStyle: const TextStyle(fontSize: 12),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 12,
-                        vertical: 8,
+                        vertical: 6,
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
@@ -728,11 +618,12 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
                     onSubmitted: (_) => _sendMessage(),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 IconButton(
                   onPressed: _sendMessage,
-                  icon: const Icon(Icons.send),
+                  icon: const Icon(Icons.send, size: 20),
                   color: Colors.blue,
+                  padding: const EdgeInsets.all(8),
                 ),
               ],
             ),
@@ -747,10 +638,10 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
     return Align(
       alignment: message.isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        margin: const EdgeInsets.symmetric(vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.3,
+          maxWidth: MediaQuery.of(context).size.width * 0.6,
         ),
         decoration: BoxDecoration(
           color:
@@ -759,7 +650,12 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
                   : Colors.purple.withOpacity(0.3),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Text(message.text, style: const TextStyle(fontSize: 13)),
+        child: Text(
+          message.text,
+          style: const TextStyle(fontSize: 11),
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
+        ),
       ),
     );
   }
