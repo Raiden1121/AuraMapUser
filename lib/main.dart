@@ -47,8 +47,8 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
   // 資料狀態
   Uint8List? _lastFrame;
   bool _cameraConnected = false;
-  bool _imuConnected = true; // 測試用：模擬IMU已連接
-  bool _audioConnected = true; // 測試用：模擬耳機已連接
+  bool _imuConnected = false;
+  bool _audioConnected = false;
 
   // 模擬數據（實際應用時替換為真實數據）
   String _currentBuilding = "資訊大樓";
@@ -83,9 +83,10 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
     await _imu.start();
     _imuSub = _imu.stream.listen(
       (pkt) {
-        setState(() {
-          _imuConnected = true;
-        });
+        // 暫時註釋掉自動連接，用於測試
+        // setState(() {
+        //   _imuConnected = true;
+        // });
       },
       onError: (e) {
         setState(() => _imuConnected = false);
@@ -97,7 +98,8 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
       (jpeg) {
         setState(() {
           _lastFrame = jpeg;
-          _cameraConnected = true;
+          // 暫時註釋掉自動連接，用於測試
+          // _cameraConnected = true;
         });
       },
       onError: (e) {
@@ -175,9 +177,6 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
             // 頂部狀態列
             _buildStatusBar(),
 
-            // 測試按鈕（僅用於測試）
-            _buildTestButtons(),
-
             // 攝影畫面
             _buildCameraView(),
 
@@ -188,90 +187,6 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
             Expanded(child: _buildChatInterface()),
           ],
         ),
-      ),
-    );
-  }
-
-  // 測試按鈕（僅用於測試連接狀態）
-  Widget _buildTestButtons() {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _cameraConnected = !_cameraConnected;
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _cameraConnected ? Colors.green : Colors.red,
-                ),
-                child: Text(
-                  _cameraConnected ? '攝影機: 已連接' : '攝影機: 未連接',
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _imuConnected = !_imuConnected;
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _imuConnected ? Colors.green : Colors.red,
-                ),
-                child: Text(
-                  _imuConnected ? 'IMU: 已連接' : 'IMU: 未連接',
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _audioConnected = !_audioConnected;
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _audioConnected ? Colors.green : Colors.red,
-                ),
-                child: Text(
-                  _audioConnected ? '耳機: 已連接' : '耳機: 未連接',
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
-                ),
-              ),
-              // Aura電量顯示狀態指示
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color:
-                      (_cameraConnected && _imuConnected)
-                          ? Colors.green
-                          : Colors.grey,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  (_cameraConnected && _imuConnected)
-                      ? 'Aura電量: 顯示'
-                      : 'Aura電量: 隱藏',
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
@@ -402,7 +317,7 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
   // 攝影畫面
   Widget _buildCameraView() {
     return Container(
-      height: 200,
+      height: 280, // 增加高度以符合16:9比例
       margin: const EdgeInsets.all(8),
       child: Card(
         child: Container(
