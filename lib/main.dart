@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'services/mjpeg_client.dart';
-import 'services/imu_udp.dart';
-import 'models/imu_packet.dart';
+import 'services/audio_service.dart';
+import 'services/battery_service.dart';
+import 'services/connection_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -36,13 +36,10 @@ class AuraMapScreen extends StatefulWidget {
 }
 
 class _AuraMapScreenState extends State<AuraMapScreen> {
-  // 連線服務
-  final _mjpeg = MjpegClient('http://192.168.4.1:81/stream');
-  final _imu = ImuUdpService(port: 9000);
-
-  // 串流訂閱
-  StreamSubscription<Uint8List>? _frameSub;
-  StreamSubscription<ImuPacket>? _imuSub;
+  // 服務實例
+  final AudioService _audioService = AudioService();
+  final BatteryService _batteryService = BatteryService();
+  final ConnectionService _connectionService = ConnectionService();
 
   // 資料狀態
   Uint8List? _lastFrame;
@@ -56,9 +53,6 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
   double _nextWaypointDistance = 15.2;
   double _nextWaypointAngle = 45.0;
   double _destinationDistance = 85.5;
-  int _batteryLevel = 75;
-  int _esp32BatteryLevel = 85;
-  int _headsetBatteryLevel = 90;
 
   // AI 對話記錄
   final List<ChatMessage> _chatMessages = [
@@ -73,39 +67,35 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
   @override
   void initState() {
     super.initState();
-    _startServices();
+    _initializeServices();
     _simulateDataUpdates();
   }
 
-  // 啟動服務
-  Future<void> _startServices() async {
-    // 啟動 IMU
-    await _imu.start();
-    _imuSub = _imu.stream.listen(
-      (pkt) {
-        // 暫時註釋掉自動連接，用於測試
-        // setState(() {
-        //   _imuConnected = true;
-        // });
-      },
-      onError: (e) {
-        setState(() => _imuConnected = false);
-      },
-    );
+  // 初始化所有服務
+  void _initializeServices() {
+    // 啟動連接服務
+    _connectionService.startServices();
 
-    // 啟動 MJPEG
-    _frameSub = _mjpeg.start().listen(
-      (jpeg) {
-        setState(() {
-          _lastFrame = jpeg;
-          // 暫時註釋掉自動連接，用於測試
-          // _cameraConnected = true;
-        });
-      },
-      onError: (e) {
-        setState(() => _cameraConnected = false);
-      },
-    );
+    // 監聽連接狀態變化
+    _connectionService.connectionStream.listen((status) {
+      setState(() {
+        _cameraConnected = status['camera'] ?? false;
+        _imuConnected = status['imu'] ?? false;
+      });
+    });
+
+    // 啟動音訊服務
+    _audioService.startHeadphoneDetection();
+
+    // 監聽耳機連接狀態
+    _audioService.headphoneStream.listen((connected) {
+      setState(() {
+        _audioConnected = connected;
+      });
+    });
+
+    // 啟動電量服務
+    _batteryService.startBatterySimulation();
   }
 
   // 模擬數據更新（實際應用時替換為真實數據源）
@@ -122,16 +112,6 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
           }
           // 模擬角度變化
           _nextWaypointAngle = (_nextWaypointAngle + 5) % 360;
-          // 模擬電量消耗
-          if (_batteryLevel > 0) {
-            _batteryLevel = math.max(0, _batteryLevel - 1);
-          }
-          if (_esp32BatteryLevel > 0) {
-            _esp32BatteryLevel = math.max(0, _esp32BatteryLevel - 2);
-          }
-          if (_headsetBatteryLevel > 0) {
-            _headsetBatteryLevel = math.max(0, _headsetBatteryLevel - 1);
-          }
         });
       }
     });
@@ -139,10 +119,9 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
 
   @override
   void dispose() {
-    _frameSub?.cancel();
-    _imuSub?.cancel();
-    _mjpeg.stop();
-    _imu.stop();
+    _audioService.dispose();
+    _batteryService.dispose();
+    _connectionService.dispose();
     _messageController.dispose();
     super.dispose();
   }
@@ -227,7 +206,9 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
               Row(
                 children: [
                   if (_cameraConnected && _imuConnected) ...[
-                    _buildSingleBatteryIndicator(level: _esp32BatteryLevel),
+                    _buildSingleBatteryIndicator(
+                      level: _batteryService.esp32BatteryLevel,
+                    ),
                     const SizedBox(width: 8),
                   ],
                   _buildConnectionStatus(
@@ -252,7 +233,9 @@ class _AuraMapScreenState extends State<AuraMapScreen> {
                   ),
                   if (_audioConnected) ...[
                     const SizedBox(width: 8),
-                    _buildSingleBatteryIndicator(level: _headsetBatteryLevel),
+                    _buildSingleBatteryIndicator(
+                      level: _batteryService.headsetBatteryLevel,
+                    ),
                   ],
                 ],
               ),
