@@ -1,68 +1,136 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>$(DEVELOPMENT_LANGUAGE)</string>
-	<key>CFBundleDisplayName</key>
-	<string>Auramapuser</string>
-	<key>CFBundleExecutable</key>
-	<string>$(EXECUTABLE_NAME)</string>
-	<key>CFBundleIdentifier</key>
-	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>auramapuser</string>
-	<key>CFBundlePackageType</key>
-	<string>APPL</string>
-	<key>CFBundleShortVersionString</key>
-	<string>$(FLUTTER_BUILD_NAME)</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
-	<key>CFBundleVersion</key>
-	<string>$(FLUTTER_BUILD_NUMBER)</string>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
-	<key>UIMainStoryboardFile</key>
-	<string>Main</string>
-	<key>UISupportedInterfaceOrientations</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
-
-	
-	<key>NSAppTransportSecurity</key>
 	<dict>
-	<!-- 允許連線本地 http（ESP32 AP） -->
-	<key>NSAllowsArbitraryLoads</key><true/>
+		<key>
+			CADisableMinimumFrameDurationOnPhone
+		</key>
+		<true />
+		<key>
+			CFBundleDevelopmentRegion
+		</key>
+		<string>
+			$(DEVELOPMENT_LANGUAGE)
+		</string>
+		<key>
+			CFBundleDisplayName
+		</key>
+		<string>
+			AuraMap
+		</string>
+		<key>
+			CFBundleExecutable
+		</key>
+		<string>
+			$(EXECUTABLE_NAME)
+		</string>
+		<key>
+			CFBundleIdentifier
+		</key>
+		<string>
+			$(PRODUCT_BUNDLE_IDENTIFIER)
+		</string>
+		<key>
+			CFBundleInfoDictionaryVersion
+		</key>
+		<string>
+			6.0
+		</string>
+		<key>
+			CFBundleName
+		</key>
+		<string>
+			AuraMap
+		</string>
+		<key>
+			CFBundlePackageType
+		</key>
+		<string>
+			APPL
+		</string>
+		<key>
+			CFBundleShortVersionString
+		</key>
+		<string>
+			$(FLUTTER_BUILD_NAME)
+		</string>
+		<key>
+			CFBundleVersion
+		</key>
+		<string>
+			$(FLUTTER_BUILD_NUMBER)
+		</string>
+		<key>
+			LSRequiresIPhoneOS
+		</key>
+		<true />
+		<key>
+			NSAppTransportSecurity
+		</key>
+		<dict>
+			<key>
+				NSAllowsArbitraryLoads
+			</key>
+			<true />
+		</dict>
+		<key>
+			NSLocalNetworkUsageDescription
+		</key>
+		<string>
+			App 需要存取本地網路以接收穿戴裝置資料（ESP32）。
+		</string>
+		<key>
+			NSMicrophoneUsageDescription
+		</key>
+		<string>
+			需要訪問麥克風以檢測耳機狀態。
+		</string>
+		<key>
+			UIApplicationSupportsIndirectInputEvents
+		</key>
+		<true />
+		<key>
+			UILaunchStoryboardName
+		</key>
+		<string>
+			LaunchScreen
+		</string>
+		<key>
+			UIMainStoryboardFile
+		</key>
+		<string>
+			Main
+		</string>
+		<key>
+			UISupportedInterfaceOrientations
+		</key>
+		<array>
+			<string>
+				UIInterfaceOrientationPortrait
+			</string>
+			<string>
+				UIInterfaceOrientationLandscapeLeft
+			</string>
+			<string>
+				UIInterfaceOrientationLandscapeRight
+			</string>
+		</array>
+		<key>
+			UISupportedInterfaceOrientations~ipad
+		</key>
+		<array>
+			<string>
+				UIInterfaceOrientationPortrait
+			</string>
+			<string>
+				UIInterfaceOrientationPortraitUpsideDown
+			</string>
+			<string>
+				UIInterfaceOrientationLandscapeLeft
+			</string>
+			<string>
+				UIInterfaceOrientationLandscapeRight
+			</string>
+		</array>
 	</dict>
-
-
-	<!-- iOS 14+ 本地網路存取（收 UDP） -->
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>App 需要存取本地網路以接收穿戴裝置資料（ESP32）。</string>
-
-
-	<!-- 若將來要 BLE -->
-	<!-- <key>NSBluetoothAlwaysUsageDescription</key>
-	<string>需要藍牙與穿戴裝置交換 IMU 資料。</string> -->
-
-
-</dict>
 </plist>
